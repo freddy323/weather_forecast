@@ -1,0 +1,2 @@
+class CacheForecast < ApplicationRecord
+end

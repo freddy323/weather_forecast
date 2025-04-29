@@ -1,0 +1,19 @@
+<h1>Weather Forecast</h1>
+
+<% if @forecast.cached? %>
+  <div class="notice">
+    <strong>Note:</strong> This forecast was retrieved from cache.
+  </div>
+<% end %>
+
+<div class="forecast">
+  <h2>Current Conditions</h2>
+  <p>Temperature: <%= @forecast.current_temp %></p>
+  <p>Conditions: <%= @forecast.conditions %></p>
+  
+  <h3>Today's Forecast</h3>
+  <p>High: <%= @forecast.high_temp %></p>
+  <p>Low: <%= @forecast.low_temp %></p>
+</div>
+
+<%= link_to "Look up another address", new_forecast_path %>

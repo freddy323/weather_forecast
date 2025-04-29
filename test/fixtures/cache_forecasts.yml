@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  zip_code: MyString
+  data: 
+  expires_at: 2025-04-28 07:23:07
+
+two:
+  zip_code: MyString
+  data: 
+  expires_at: 2025-04-28 07:23:07

@@ -1,0 +1,18 @@
+<h1>Weather Forecast Lookup</h1>
+
+<%= form_with url: forecasts_path, method: :post do |form| %>
+  <div class="field">
+    <%= form.label :address, "Enter an address (must include US zip code)" %>
+    <%= form.text_field :address, required: true, class: "input" %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Get Forecast", class: "button" %>
+  </div>
+<% end %>
+
+<% if flash[:alert] %>
+  <div class="alert">
+    <%= flash[:alert] %>
+  </div>
+<% end %>
