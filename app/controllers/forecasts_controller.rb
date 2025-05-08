@@ -1,24 +1,30 @@
-class ForecastsController < ApplicationController
-  def new
-    # Display form
+# frozen_string_literal: true
+
+class ForecastsController < ApplicationController # rubocop:disable Style/Documentation
+  def show
+    @address = params[:address]
+    return unless @address.present?
+
+    begin
+      zip_code = extract_zip_code(@address)
+      cache_key = "forecast_#{zip_code}"
+      @cached = Rails.cache.exist?(cache_key)
+
+      @forecast = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+        Forecast.new(@address).fetch
+      end
+
+      # Set time zone for display purposes
+      Time.zone = @forecast.time_zone
+    rescue StandardError => e
+      flash[:error] = "Error retrieving forecast: #{e.message}"
+      Rails.logger.error "Forecast error: #{e.message}\n#{e.backtrace.join("\n")}"
+    end
   end
 
-  def create
-    address = params[:address]
-    @address_service = AddressService.new(address)
-    coordinates = @address_service.coordinates
-    zip_code = coordinates[:zip_code]
+  private
 
-    @cached = ForecastCacheService.cached?(zip_code)
-    forecast_data = ForecastCacheService.fetch(zip_code)
-    @forecast = ForecastPresenter.new(forecast_data, cached: @cached)
-
-    render :show
-  rescue AddressService::InvalidAddressError => e
-    flash.now[:alert] = e.message
-    render :new
-  rescue => e
-    flash.now[:alert] = "Unable to fetch weather data: #{e.message}"
-    render :new
+  def extract_zip_code(address)
+    address.match(/\b\d{5}(?:-\d{4})?\b/)&.to_s || 'unknown'
   end
 end

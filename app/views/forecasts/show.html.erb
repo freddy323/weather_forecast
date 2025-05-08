@@ -1,19 +1,104 @@
-<h1>Weather Forecast</h1>
+<div class="weather-app">
+    <div class="search-container">
+        <h1 class="search-title">Weather Forecast</h1>
+        <%= form_with url: forecast_path, method: :get, class: 'search-form' do |form| %>
+        <div class="search-group">
+            <%= form.text_field :address, 
+            value: @address, 
+            class: 'search-input', 
+            placeholder: 'Enter city, state or zip code...', 
+            required: true,
+            aria: { label: "Enter location for weather forecast" } %>
+            <button type="submit" class="search-button">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+        <% end %>
+    </div>
 
-<% if @forecast.cached? %>
-  <div class="notice">
-    <strong>Note:</strong> This forecast was retrieved from cache.
-  </div>
-<% end %>
+    <% if flash[:error] %>
+    <div class="alert alert-danger">
+        <%= flash[:error] %>
+    </div>
+    <% end %>
 
-<div class="forecast">
-  <h2>Current Conditions</h2>
-  <p>Temperature: <%= @forecast.current_temp %></p>
-  <p>Conditions: <%= @forecast.conditions %></p>
-  
-  <h3>Today's Forecast</h3>
-  <p>High: <%= @forecast.high_temp %></p>
-  <p>Low: <%= @forecast.low_temp %></p>
+    <% if @forecast %>
+    <div class="weather-container">
+        <% if @cached %>
+        <div class="cache-notice">
+            <i class="fas fa-info-circle"></i> Showing cached data
+        </div>
+        <% end %>
+
+        <div class="current-weather">
+            <div class="location">
+                <h2><%= @forecast.location_name %></h2>
+                <p><%= Time.zone.now.strftime("%A, %B %-d") %></p>
+            </div>
+
+            <div class="weather-main">
+                <div class="temperature">
+                    <span class="temp-value"><%= @forecast.current_temperature %></span>
+                    <span class="temp-unit">°<%= @forecast.temperature_unit %></span>
+                </div>
+                <div class="weather-icon">
+                    <% if @forecast.current_forecast["icon"] %>
+                    <%= image_tag @forecast.current_forecast["icon"], alt: "Weather icon" %>
+                    <% end %>
+                    <p><%= @forecast.current_forecast["shortForecast"] %></p>
+                </div>
+            </div>
+
+            <div class="weather-details">
+                <div class="detail">
+                    <i class="fas fa-temperature-high"></i>
+                    <span>High: <%= @forecast.high_temperature %>°</span>
+                </div>
+                <div class="detail">
+                    <i class="fas fa-temperature-low"></i>
+                    <span>Low: <%= @forecast.low_temperature %>°</span>
+                </div>
+                <div class="detail">
+                    <i class="fas fa-wind"></i>
+                    <span><%= @forecast.current_forecast["windSpeed"] %> <%= @forecast.current_forecast["windDirection"] %></span>
+                </div>
+                <div class="detail">
+                    <i class="fas fa-tint"></i>
+                    <span>Precip: <%= @forecast.current_forecast.dig("probabilityOfPrecipitation", "value") || 0 %>%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast-details">
+            <h3>Detailed Forecast</h3>
+            <p><%= @forecast.current_forecast["detailedForecast"] %></p>
+        </div>
+
+        <div class="daily-forecast">
+            <h3>3-Day Forecast</h3>
+            <div class="days-container">
+                <% @forecast.daily_forecasts.each do |day| %>
+                <div class="day-card">
+                    <h4><%= Time.zone.parse(day["daytime"]["startTime"]).strftime("%A") %></h4>
+                    <div class="day-icon">
+                        <%= image_tag day["daytime"]["icon"], alt: "Weather icon" if day["daytime"]["icon"] %>
+                    </div>
+                    <div class="day-temp">
+                        <span class="high"><%= day["daytime"]["temperature"] %>°</span>
+                        <span class="low"><%= day["nighttime"]["temperature"] %>°</span>
+                    </div>
+                    <p class="day-desc"><%= day["daytime"]["shortForecast"] %></p>
+                </div>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Data provided by National Weather Service</p>
+            <% if @forecast.cached? %>
+            <p class="text-muted">Last updated: <%= @forecast.cache_timestamp.in_time_zone(@forecast.time_zone).strftime("%m/%d/%Y at %I:%M %p") %></p>
+            <% end %>
+        </div>
+    </div>
+    <% end %>
 </div>
-
-<%= link_to "Look up another address", new_forecast_path %>
